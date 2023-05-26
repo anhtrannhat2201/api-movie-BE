@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Phim {
+  maPhim        Int         @id @default(autoincrement()) @map("ma_phim")
+  tenPhim       String      @map("ten_phim") @db.VarChar(255)
+  trailer       String      @map("trailer") @db.VarChar(255)
+  hinhAnh       String?     @map("hinh_anh") @db.Text
+  moTa          String      @map("mo_ta") @db.Text
+  ngayKhoiChieu String?     @map("ngay_khoi_chieu") @db.VarChar(50)
+  danhGia       Int?        @map("danh_gia")
+  hot           Boolean?
+  dangChieu     Boolean     @map("dang_chieu")
+  sapChieu      Boolean     @map("sap_chieu")
+  isRemoved     Boolean     @default(false) @map("is_removed")
+  banner        Banner[]
+  lichChieu     LichChieu[]
+}
+
+model Banner {
+  maBanner  Int     @id @default(autoincrement()) @map("ma_banner")
+  maPhim    Int     @map("ma_phim")
+  hinhAnh   String  @map("hinh_anh") @db.Text
+  isRemoved Boolean @default(false) @map("is_removed")
+  phim      Phim    @relation(fields: [maPhim], references: [maPhim], onDelete: Restrict, onUpdate: Restrict, map: "Banner_ibfk_1")
+
+  @@index([maPhim], map: "maPhim")
+}
+
+model HeThongRap {
+  maHeThongRap  String   @id @map("ma_he_thong_rap")
+  tenHeThongRap String   @map("ten_he_thong_rap") @db.VarChar(255)
+  logo          String   @db.Text
+  isRemoved     Boolean  @default(false) @map("is_removed")
+  cumRap        CumRap[]
+}
+
+model CumRap {
+  maCumRap     String     @id @map("ma_cum_rap")
+  tenCumRap    String     @map("ten_cum_rap") @db.VarChar(255)
+  diaChi       String     @map("dia_chi") @db.VarChar(255)
+  maHeThongRap String     @map("ma_he_thong_rap")
+  isRemoved    Boolean    @default(false) @map("is_removed")
+  heThongRap   HeThongRap @relation(fields: [maHeThongRap], references: [maHeThongRap], onDelete: Restrict, onUpdate: Restrict, map: "CumRap_ibfk_1")
+  rapPhim      RapPhim[]
+
+  @@index([maHeThongRap], map: "maHeThongRap")
+}
+
+model RapPhim {
+  maRap     Int         @id @default(autoincrement()) @map("ma_rap")
+  tenRap    String      @map("ten_rap") @db.VarChar(255)
+  maCumRap  String      @map("ma_cum_rap")
+  isRemoved Boolean     @default(false) @map("is_removed")
+  cumRap    CumRap      @relation(fields: [maCumRap], references: [maCumRap], onDelete: Restrict, onUpdate: Restrict, map: "RapPhim_ibfk_1")
+  ghe       Ghe[]
+  lichChieu LichChieu[]
+
+  @@index([maCumRap], map: "maCumRap")
+}
+
+model Ghe {
+  maGhe     Int      @id @default(autoincrement()) @map("ma_ghe")
+  tenGhe    String   @map("ten_ghe") @db.VarChar(3)
+  loaiGhe   String   @map("loai_ghe") @db.VarChar(10)
+  giaVe     Int      @map("gia_ve")
+  maRap     Int?     @map("ma_rap")
+  isRemoved Boolean  @default(false) @map("is_removed")
+  rapPhim   RapPhim? @relation(fields: [maRap], references: [maRap], onDelete: Cascade, onUpdate: SetNull, map: "Ghe_ibfk_1")
+  datVe     DatVe[]
+
+  @@index([maRap], map: "maRap")
+}
+
+model NguoiDung {
+  taiKhoan      Int     @id @default(autoincrement()) @map("tai_khoan")
+  hoTen         String  @map("ho_ten") @db.VarChar(255)
+  email         String  @unique @db.VarChar(255)
+  soDT          String  @map("so_dt") @db.VarChar(20)
+  matKhau       String  @map("mat_khau") @db.VarChar(255)
+  loaiNguoiDung String  @default("USER") @map("loai_nguoi_dung") @db.VarChar(10)
+  isRemoved     Boolean @default(false) @map("is_removed")
+  datVe         DatVe[]
+}
+
+model LichChieu {
+  maLichChieu  Int      @id @default(autoincrement()) @map("ma_lich_chieu")
+  maRap        Int?     @map("ma_rap")
+  maPhim       Int?     @map("ma_phim")
+  ngayGioChieu String   @map("ngay_gio_chieu") @db.VarChar(50)
+  isRemoved    Boolean  @default(false) @map("is_removed")
+  rapPhim      RapPhim? @relation(fields: [maRap], references: [maRap], onDelete: SetNull, onUpdate: SetNull, map: "LichChieu_ibfk_1")
+  phim         Phim?    @relation(fields: [maPhim], references: [maPhim], onDelete: SetNull, onUpdate: SetNull, map: "LichChieu_ibfk_2s")
+  datVe        DatVe[]
+
+  @@index([maRap, maPhim], map: "LichChieu_indexes")
+}
+
+model DatVe {
+  taiKhoan    Int?       @map("tai_khoan")
+  maLichChieu Int        @map("ma_lich_chieu")
+  maGhe       Int        @map("ma_ghe")
+  isRemoved   Boolean    @default(false) @map("is_removed")
+  nguoiDung   NguoiDung? @relation(fields: [taiKhoan], references: [taiKhoan], onDelete: SetNull, onUpdate: Restrict, map: "DatVe_ibfk_1")
+  lichChieu   LichChieu  @relation(fields: [maLichChieu], references: [maLichChieu], onDelete: Restrict, onUpdate: Restrict, map: "DatVe_ibfk_2")
+  ghe         Ghe        @relation(fields: [maGhe], references: [maGhe], onDelete: Restrict, onUpdate: Restrict, map: "DatVe_ibfk_3")
+
+  @@id([maLichChieu, maGhe])
+  @@index([maLichChieu, maGhe], map: "DatVe_indexes")
+}

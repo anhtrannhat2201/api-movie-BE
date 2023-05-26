@@ -1,0 +1,21 @@
+# compiled output
+node_modules
+dist
+
+
+# git
+.git*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+
+# Keep environment variables out of version control
+.env
+.aws

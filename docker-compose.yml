@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  nest-movie:
+    container_name: nest-movie
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3600:8080
+    depends_on:
+      - mysql_movie
+    env_file:
+      - .env
+    networks:
+      - node-network
+  mysql_movie:
+    image: mysql
+    container_name: mysql_movie
+    ports:
+      - 3306:3306
+    env_file:
+      - .env
+    volumes:
+      - mysql_movie:/var/lib/mysql
+    networks:
+      - node-network
+volumes:
+  mysql_movie:
+    driver: local
+    name: node25-nest-movie
+networks:
+  node-network:
